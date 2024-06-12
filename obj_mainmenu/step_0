@@ -1,1 +1,390 @@
-im not done yet
+scr_getinput()
+index += 0.1
+key_jump = (key_jump || (scr_check_menu_key(13) && keyboard_check_pressed(vk_return)) || (scr_check_menu_key(32) && keyboard_check_pressed(vk_space)))
+key_jump2 = (key_jump2 || (scr_check_menu_key(13) && keyboard_check(vk_return)) || (scr_check_menu_key(32) && keyboard_check(vk_space)))
+switch state
+{
+    case (18 << 0):
+        jumpscarecount++
+        currentselect = -1
+        if ((keyboard_check_pressed(vk_anykey) || scr_checkanygamepad(obj_inputAssigner.player_input_device[0]) != -4 || scr_checkanystick(obj_inputAssigner.player_input_device[0])) && (!instance_exists(obj_mainmenu_jumpscare)))
+        {
+            state = (8 << 0)
+            currentselect = -1
+            visualselect = -1
+            darkcount = 7
+            dark = 0
+            darkbuffer = 5
+            jumpscarecount = 0
+            fmod_event_one_shot("event:/sfx/ui/lightswitch")
+            with (obj_music)
+                fmod_event_instance_set_parameter(music.event, "state", 1, 1)
+        }
+        if (jumpscarecount > 2400 && (!instance_exists(obj_mainmenu_jumpscare)))
+        {
+            instance_create(480, 270, obj_mainmenu_jumpscare)
+            fmod_event_one_shot("event:/sfx/enemies/jumpscare")
+        }
+        break
+    case (8 << 0):
+        if (darkbuffer > 0)
+            darkbuffer--
+        else
+        {
+            dark = (!dark)
+            if (darkcount > 0)
+            {
+                darkcount--
+                if dark
+                    darkbuffer = 2 + irandom(3)
+                else
+                    darkbuffer = 6 + irandom(5)
+                if (darkcount <= 0)
+                {
+                    dark = 0
+                    darkbuffer = 40
+                }
+            }
+            else
+            {
+                currentselect = 0
+                visualselect = 0
+                dark = 0
+                state = (0 << 0)
+                sprite_index = spr_titlepep_forwardtoleft
+                image_index = 0
+            }
+        }
+        break
+    case (0 << 0):
+        if (key_start && (!instance_exists(obj_option)))
+        {
+            with (instance_create(0, 0, obj_option))
+                backbuffer = 2
+            break
+        }
+        else if instance_exists(obj_option)
+            break
+        else
+        {
+            move = key_left2 + key_right2
+            var p = 5
+            var _move_v = key_down2 - key_up2
+            if (_move_v != 0)
+            {
+                var c = charselect
+                charselect += _move_v
+                charselect = clamp(charselect, 0, 7)
+                setisgus = 0
+                setispizzy = 0
+                setisfake = 0
+                if (charselect == 0)
+                {
+                    setchar = "P"
+                    setispep = 1
+                    inifile = ".ini"
+                }
+                else if (charselect == 1)
+                {
+                    setchar = "P"
+                    setispep = 0
+                    inifile = "N.ini"
+                }
+                else if (charselect == 2)
+                {
+                    setchar = "V"
+                    setispep = 0
+                    inifile = "V.ini"
+                }
+                else if (charselect == 3)
+                {
+                    setchar = "M"
+                    setispep = 0
+                    inifile = "M.ini"
+                }
+                else if (charselect == 4)
+                {
+                    setchar = "P"
+                    setispep = 0
+                    setispizzy = 1
+                    inifile = "PZ.ini"
+                }
+                else if (charselect == 5)
+                {
+                    setchar = "P"
+                    setispep = 0
+                    setisfake = 1
+                    inifile = "FP.ini"
+                }
+                else if (charselect == 6)
+                {
+                    setchar = "P"
+                    setispep = 0
+                    setisgus = 1
+                    inifile = "G.ini"
+                }
+                else if (charselect == 7)
+                {
+                    setchar = "S"
+                    setispep = 0
+                    inifile = "S.ini"
+                }
+                global.inifile = inifile
+            }
+            if ((sprite_index != spr_titlepep_punch && sprite_index != spr_titlepep_angry) || move != 0)
+            {
+                if (move != 0)
+                    angrybuffer = 0
+                currentselect += move
+                currentselect = clamp(currentselect, 0, 2)
+                if (currentselect != visualselect && (sprite_index == spr_titlepep_left || sprite_index == spr_titlepep_middle || sprite_index == spr_titlepep_right))
+                {
+                    visualselect = Approach(visualselect, currentselect, 1)
+                    image_index = 0
+                    if (visualselect == 0 && sprite_index == spr_titlepep_middle)
+                        sprite_index = spr_titlepep_middletoleft
+                    if (visualselect == 1 && sprite_index == spr_titlepep_left)
+                        sprite_index = spr_titlepep_lefttomiddle
+                    if (visualselect == 2 && sprite_index == spr_titlepep_middle)
+                        sprite_index = spr_titlepep_middletoright
+                    if (visualselect == 1 && sprite_index == spr_titlepep_right)
+                        sprite_index = spr_titlepep_righttomiddle
+                }
+                if (floor(image_index) == (image_number - 1))
+                {
+                    switch sprite_index
+                    {
+                        case spr_titlepep_forwardtoleft:
+                        case 1635:
+                            sprite_index = spr_titlepep_left
+                            break
+                        case 2946:
+                        case 2995:
+                            sprite_index = spr_titlepep_middle
+                            break
+                        case 3525:
+                            sprite_index = spr_titlepep_right
+                            break
+                    }
+
+                }
+            }
+            else if (sprite_index == spr_titlepep_angry)
+            {
+                y = ystart
+                if (angrybuffer > 0)
+                    angrybuffer--
+                else
+                {
+                    sprite_index = savedsprite
+                    switch sprite_index
+                    {
+                        case spr_titlepep_forwardtoleft:
+                        case 1635:
+                            sprite_index = spr_titlepep_left
+                            break
+                        case 2946:
+                        case 2995:
+                            sprite_index = spr_titlepep_middle
+                            break
+                        case 3525:
+                            sprite_index = spr_titlepep_right
+                            break
+                    }
+
+                    image_index = savedindex
+                    image_speed = 0.35
+                }
+            }
+            else
+            {
+                if (vsp < 20)
+                    vsp += 0.5
+                y += vsp
+                if (y >= ystart && vsp > 0)
+                {
+                    y = ystart
+                    vsp = 0
+                }
+            }
+            if key_jump
+            {
+                state = (98 << 0)
+                with (obj_menutv)
+                {
+                    if (trigger == other.currentselect)
+                    {
+                        fmod_event_instance_stop(obj_music.music.event, 1)
+                        fmod_event_one_shot("event:/sfx/ui/fileselect")
+                        state = (98 << 0)
+                        sprite_index = confirmspr
+                    }
+                }
+                alarm[0] = 250
+                fmod_event_one_shot("event:/sfx/misc/collectpizza")
+                switch currentselect
+                {
+                    case 0:
+                        sprite_index = spr_titlepep_left
+                        break
+                    case 1:
+                        sprite_index = spr_titlepep_middle
+                        break
+                    case 2:
+                        sprite_index = spr_titlepep_right
+                        break
+                }
+
+            }
+            else if key_slap2
+            {
+                state = (289 << 0)
+                exitselect = 1
+                switch currentselect
+                {
+                    case 0:
+                        sprite_index = spr_titlepep_left
+                        break
+                    case 1:
+                        sprite_index = spr_titlepep_middle
+                        break
+                    case 2:
+                        sprite_index = spr_titlepep_right
+                        break
+                }
+
+            }
+            else if (key_taunt2 && global.game_started[currentselect])
+            {
+                deletebuffer = 0
+                state = (183 << 0)
+                deleteselect = 1
+                fmod_event_one_shot_3d("event:/sfx/voice/pig", 480, 270)
+                switch currentselect
+                {
+                    case 0:
+                        sprite_index = spr_titlepep_left
+                        break
+                    case 1:
+                        sprite_index = spr_titlepep_middle
+                        break
+                    case 2:
+                        sprite_index = spr_titlepep_right
+                        break
+                }
+
+            }
+            break
+        }
+    case (183 << 0):
+        deleteselect += (key_left2 + key_right2)
+        deleteselect = clamp(deleteselect, 0, 1)
+        if key_jump2
+            deletebuffer++
+        else
+            deletebuffer = 0
+        if ((deleteselect == 1 && key_jump) || (deleteselect == 0 && deletebuffer >= 120))
+        {
+            if (deleteselect == 0)
+            {
+                var f = concat("saves/saveDataP", (currentselect + 1), inifile)
+                if file_exists(f)
+                    file_delete(f)
+                if (charselect == 0)
+                    global.game[currentselect] = game_empty()
+                else if (charselect == 1)
+                    global.gameN[currentselect] = game_empty()
+                else if (charselect == 2)
+                    global.gameV[currentselect] = game_empty()
+                else if (charselect == 3)
+                    global.gameM[currentselect] = game_empty()
+                else if (charselect == 4)
+                    global.gamePZ[currentselect] = game_empty()
+                else if (charselect == 5)
+                    global.gameFP[currentselect] = game_empty()
+                else if (charselect == 6)
+                    global.gameG[currentselect] = game_empty()
+                else if (charselect == 7)
+                    global.gameS[currentselect] = game_empty()
+                fmod_event_one_shot_3d("event:/sfx/misc/explosion", 480, 270)
+                fmod_event_one_shot_3d("event:/sfx/mort/mortdead", 480, 270)
+                with (obj_menutv)
+                {
+                    if (trigger == other.currentselect && sprite_index == selectedspr)
+                        sprite_index = transspr
+                }
+                with (obj_camera)
+                {
+                    shake_mag = 4
+                    shake_mag_acc = 5 / room_speed
+                }
+            }
+            state = (0 << 0)
+        }
+        break
+    case (289 << 0):
+        exitselect += (key_left2 + key_right2)
+        exitselect = clamp(exitselect, 0, 1)
+        if key_jump
+        {
+            if (exitselect == 0)
+                game_end()
+            else
+                state = (0 << 0)
+        }
+        break
+}
+
+if (state != (18 << 0) && state != (8 << 0))
+    extrauialpha = Approach(extrauialpha, 1, 0.1)
+if (currentselect == 0)
+    percentage = global.percentage_1
+else if (currentselect == 1)
+    percentage = global.percentage_2
+else if (currentselect == 2)
+    percentage = global.percentage_3
+if (currentselect != -1)
+{
+    pep_game = menu_get_game(currentselect, 1)
+    noise_game = menu_get_game(currentselect, 0)
+    vigi_game = menu_get_game(currentselect, 2)
+    pepper_game = menu_get_game(currentselect, 3)
+    pizzy_game = menu_get_game(currentselect, 4)
+    faker_game = menu_get_game(currentselect, 5)
+    gustavo_game = menu_get_game(currentselect, 6)
+    snick_game = menu_get_game(currentselect, 7)
+}
+perstatus_icon = floor(percentage / 14.285714285714286)
+if (state != (18 << 0) && state != (8 << 0))
+{
+    var a = (floor((abs(percvisual - percentage)) / 10)) + 1
+    percvisual = Approach(percvisual, percentage, a)
+}
+if (perstatus_icon > (sprite_get_number(spr_percentstatemenu) - 1))
+    perstatus_icon = sprite_get_number(spr_percentstatemenu) - 1
+if (percentage >= 101)
+    perstatus_icon = 8
+with (obj_menutv)
+{
+    if (trigger == other.currentselect)
+        selected = 1
+    else
+        selected = 0
+}
+if gamepad_button_check_pressed(obj_inputAssigner.player_input_device[0], gp_shoulderrb)
+{
+    punch_x = x + (irandom_range(-40, 40))
+    punch_y = y + (irandom_range(-30, 30))
+    event_user(0)
+}
+scr_getinput2()
+if key_jump
+    global.coop = 1
+if key_slap
+    global.coop = 0
+var _move_v2 = 0
+if (_move_v2 != 0)
+{
+    charselect2 += _move_v2
+    charselect2 = clamp(charselect2, 0, 7)
+}
